@@ -1,0 +1,39 @@
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	CC=g++
+	C++FLAGS=-Wall -std=c++11 -pedantic -O3
+endif
+ifeq ($(UNAME_S),Darwin)
+	CC=clang++
+	C++FLAGS=-Wall -std=c++11 -stdlib=libc++ -pedantic -O3
+endif
+
+
+COMMON_OBJ = Region.o Window.o WindowContainer.o Sampler.o Config.o
+# COMMON_OBJ = Region.o Window.o WindowContainer.o cossmo_Sampler.o Config.o
+PROG_NAME=main
+CONFIG_TEST_PROG=seeConfig
+WINCONT_TEST_PROG=testWinCont
+
+%.o : %.cpp
+	$(CC)  -c $< -o $@ $(C++FLAGS)
+
+
+$(PROG_NAME): main.o $(COMMON_OBJ)
+	$(CC) $(C++FLAG) -o $@ main.o $(COMMON_OBJ)
+
+$(CONFIG_TEST_PROG): seeConfig.o $(COMMON_OBJ)
+	$(CC) $(C++FLAG) -o $@ seeConfig.o $(COMMON_OBJ)
+
+$(WINCONT_TEST_PROG): testWinCont.o $(COMMON_OBJ)
+	$(CC) $(C++FLAG) -o $@ testWinCont.o $(COMMON_OBJ)
+
+all:
+	$(PROG_NAME)
+	$(CONFIG_TEST_PROG)
+	$(WINCONT_TEST_PROG)
+
+
+clean:
+	(rm -f *.o;)
+
