@@ -19,127 +19,127 @@ Config::Config()
 
 Config::Config(vector<Window> given)
 {
-	for(auto win : given)
-		windows.push_back(win);
+    for(auto win : given)
+        windows.push_back(win);
 }
 
 Config::Config(vector<Window> given, Window without)
 {
-	for(auto win : given)
-	{
-		if(win != without)
-			windows.push_back(win);
-	}
+    for(auto win : given)
+    {
+        if(win != without)
+            windows.push_back(win);
+    }
 }
 
 void Config::add(Window win)
 {
 
-	windows.push_back(win);
+    windows.push_back(win);
 }
 
 /*
 double Config::totalWeight()
 {
-	double weight = 0;
-	for(auto win : windows)
-		weight += win.weight;
+    double weight = 0;
+    for(auto win : windows)
+        weight += win.weight;
 
-	return weight;
+    return weight;
 }
 
 */
 const vector<Window> Config::getVector() const
 {
-	return windows;
+    return windows;
 }
 
 
 bool Config::overlapsWindow(Window win)
 {
-	bool overlaps = false;
-	for(auto our : windows)
-		if(our.overlaps(win))
-			overlaps = true;
+    bool overlaps = false;
+    for(auto our : windows)
+        if(our.overlaps(win))
+            overlaps = true;
 
-	return overlaps;
+    return overlaps;
 }
 
 int Config::size() const
 {
-	return windows.size();
+    return windows.size();
 }
 
 
 vector<Window>::iterator Config::begin()
 {
-	return windows.begin();
+    return windows.begin();
 }
 
 vector<Window>::iterator Config::end()
 {
-	return windows.end();
+    return windows.end();
 }
 
 void Config::print()
 {
 
-	cout << "[" ;
-	for(int i=0;i < (int)windows.size();i++)
-	{
-		cout << windows[i];
-		if(i < (int)windows.size() - 1) 
-			cout << ", " ;
-	}
-	cout << "]" << endl;
+    cout << "[" ;
+    for(int i=0;i < (int)windows.size();i++)
+    {
+        cout << windows[i];
+        if(i < (int)windows.size() - 1) 
+            cout << ", " ;
+    }
+    cout << "]" << endl;
 }
 
 Window Config::getItem(int i)
 {
-	return windows[i];
+    return windows[i];
 }
 
 
 std::ostream& operator<<(std::ostream& os, const Config& C)
 {
-	int i=0;
-	os << "[" ;
-	for(;i< (int)C.windows.size();i++)
-	{
-		os << C.windows.at(i);
-		if(i < (int)C.windows.size() - 1) 
-			os << ", ";
-	}
-	os << "]";
-	return os;
+    int i=0;
+    os << "[" ;
+    for(;i< (int)C.windows.size();i++)
+    {
+        os << C.windows.at(i);
+        if(i < (int)C.windows.size() - 1) 
+            os << ", ";
+    }
+    os << "]";
+    return os;
 }
 
 
 /*
 double Config::Z()
 {
-	return exp((double)totalWeight());
+    return exp((double)totalWeight());
 }
 */
 
 bool Config::equal(const Config &I1, const Config &I2)
 {
-	if(I1.windows.size() != I2.windows.size())
-		return false;
-	else
-	{
-		for(int i=0;i<I1.windows.size();i++)
-		{
-			if(I1.windows[i] != I2.windows[i])
-				return false;
-		}
+    if(I1.windows.size() != I2.windows.size())
+        return false;
+    else
+    {
+        for(int i=0;i<I1.windows.size();i++)
+        {
+            if(I1.windows[i] != I2.windows[i])
+                return false;
+        }
     }
     return true;
 }
 
 bool Config::operator== (Config &I2)
 {
-	return Config::equal(*this, I2);
+    return Config::equal(*this, I2);
 }
 
 bool operator== (const Config& wA, const Config& wB)
@@ -158,30 +158,30 @@ bool myfunction2 (Window i, Window j) { return (i<j); }
 
 void Config::sort()
 {
-	std::sort(windows.begin(), windows.end(), myfunction2);
+    std::sort(windows.begin(), windows.end(), myfunction2);
 }
 
 Config  sorted(const Config & c)
 {
-	vector<Window> v(c.windows);
-	std::sort(v.begin(), v.end(), myfunction2);
-	return Config(v);
+    vector<Window> v(c.windows);
+    std::sort(v.begin(), v.end(), myfunction2);
+    return Config(v);
 }
 
 string Config::toString()
 {
-	stringstream ss;
-	ss.str("");
-	for(auto w : windows)
-      	ss << w.toString();
+    stringstream ss;
+    ss.str("");
+    for(auto w : windows)
+        ss << w.toString();
 
-  	return ss.str();
+    return ss.str();
       
 }
 
 Config Config::fromString(string line)
 {
-	Config c;
+    Config c;
     for(int i=0;i<line.length();i++)
         if ( !isdigit(line.at(i)) )
             line[i] = ' ';
@@ -203,26 +203,26 @@ Config Config::fromString(string line)
 
 bool Config::isValid()
 {
-	for(int i=0; i<windows.size(); i++)
-	{
-		for(int j=0; j<windows.size(); j++)	
-		{
-			Window a = windows[i];
-			Window b = windows[j];
+    for(int i=0; i<windows.size(); i++)
+    {
+        for(int j=0; j<windows.size(); j++) 
+        {
+            Window a = windows[i];
+            Window b = windows[j];
 
-			cout << a << "  --  " << b << endl;
+            cout << a << "  --  " << b << endl;
 
-			if(a != b and a.overlaps(b))
-			{
-				cout << "overlaps: " << a << ", " << b << endl;
-				return false;
-			}
-				
-		}
+            if(a != b and a.overlaps(b))
+            {
+                cout << "overlaps: " << a << ", " << b << endl;
+                return false;
+            }
+                
+        }
 
-	}
+    }
 
-	return true;
+    return true;
 }
 
 
