@@ -28,7 +28,7 @@ def filename_matches_list(filename):
 
 def trav(path, depth):
     
-    zipf = zipfile.ZipFile("sampler_v2.0/analysis/pkg.zip", "w")
+    zipf = zipfile.ZipFile("sampler_v2.0/deployment_tools/pkg.zip", "w")
     for dirname, subdirs, files in os.walk(path):
         # print dirname, subdirs, files
         

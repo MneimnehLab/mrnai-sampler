@@ -1,9 +1,3 @@
-/*
-Currently, candidates that replace a window in level l are from all levels!!!,
-so we just ignore them if they are from different levels
-Need to fix data structure so that this is more efficient 
-*/
-
 #include <iostream>
 #include <bitset>
 #include <algorithm>

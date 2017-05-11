@@ -1,4 +1,8 @@
-def structTypeYeast(struct):
+import itertools
+
+sequences = 'NNNNGUAUGUNNNN&NNNNACAGAGAUGAUCAGCNNNN&NNNNGCUUAGAUCAAGUGUAGUANNNN&NNNNUACUAACACCNNNN'.split('&')
+
+def struct_type(struct):
     introns = ""
     helix = ""
     level0 = [(l1,l2,i,j,w1,w2) for (l1,l2,i,j,w1,w2) in struct if (l1,l2) == (1,0)]
@@ -49,4 +53,18 @@ def legend():
     legend_ = {a:a for a in kk}
 
     return legend_
+
+def rfrncForClass():
+    rfrncForClass_ = {}
+    legend_ = legend()
+    for (a,b) in legend_.keys():
+        # [(0, 7, 7, 2, 2), (1, 16, 18, 4, 4), (1, 19, 23, 2, 2), (3, 8, 8, 3, 3), (3, 13, 12, 3, 3)]
+        if b == '1A':
+            rfrncForClass_[(a,b)] = [(1, 0, 7, 7, 2, 2), (1, 2, 16, 18, 4, 4), (3, 2, 8, 8, 3, 3), (3, 2, 13, 12, 3, 3)]
+        else:
+            rfrncForClass_[(a,b)] = [(1, 0, 7, 7, 2, 2), (1, 2, 16, 18, 4, 4), (1, 2, 19, 23, 2, 2), (3, 2, 8, 8, 3, 3), (3, 2, 13, 12, 3, 3)]
+
+    return rfrncForClass_
+
+
 

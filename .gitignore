@@ -1,5 +1,6 @@
 sampler_v2.0/build
 sampler_v2.0/logs
+sampler_v2.0/analysis/logs
 *.out
 *.dump
 *.zip

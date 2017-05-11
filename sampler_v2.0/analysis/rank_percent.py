@@ -6,16 +6,11 @@ from collections import defaultdict
 from itertools import combinations
 import copy
 import compare_tbls
-import numpy as np
-import matplotlib.pyplot as plt
-from struct_comp import structTypeFuncs
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from struct_comp import structTypeFuncs
 import itertools
-
-# legend = {"A":"first, middle", "B":"first split, middle", "C":"first,  middle split", "D":"first, middle, last", "E":"first split, middle, last", "F":"first,  middle split, last"}
-
-# appearTable = defaultdict(int)
-# rankTable = defaultdict(list)
-
+import imp
 
 fileTypes = ["xluster", "metric_silh_reprs", "representatives"]
 
@@ -85,7 +80,7 @@ def doConvg(percentTablesByFolder, k):
 
     x = range(2,n+1)
     y = winwMaxes
-    plt.plot(x,y)
+    # plt.plot(x,y)
 
 
 
@@ -112,47 +107,10 @@ def getFolders(upto=None):
             else:
                 if verbose:
                     print 'X', fpath
-            
-    
-    # for p in folders:
-    #     print p
 
-    # print 'folders len =', len(folders)
-
-
-    # sys.exit(1)
 
     return folders[:]
 
-
-
-# def getFolders(upto=None):
-#     folders = []
-#     folder = os.path.join("final_logs")
-#     # print "folder =", folder
-#     for fnum, f in enumerate(os.listdir(folder) ):
-#         if upto != None and fnum >= upto:
-#             break
-#         fpath = os.path.join(folder, f)
-#         if os.path.isdir(fpath):
-#             filePath = ''
-#             for fnum2, f2 in enumerate(os.listdir(fpath) ):
-#                 begin = fileTypes[fileTypeIndx]
-#                 if f2[:len(begin)] == begin:
-
-#                     # only add to list of folders if it contains the file we are looking for
-#                     # need this for partially copied folders
-#                     folders.append(fpath)
-#                     break
-            
-    
-    # for p in folders:
-    #     print p
-    # print "hello"
-    # sys.exit(1)
-    
-
-    return folders[:]
 
 
 def appearsCountsForFile(folder):
@@ -349,48 +307,20 @@ def printPercentTbl(tbl):
         v = tbl[k]
         print legend[k],'\t','\t'.join(map(str, map(lambda y: '%.1f' %(y,), v )))
         
-        
-def main():
-    # getTbls('yeast')
-    getTbls('ribo4way_pm')
-    # getTbls('ribo4way_exact')
 
-def getTbls(rnaType = 'yeast'):
-    if len(sys.argv) < 2:
-        sys.stderr.write("Pass parent folder as an argument!!\n")
-        return
 
+
+def getTbls(rna_template_name):
+    
     global legend
     global structType
+
+    # load template from module (rna_template)
+    rna_template = foo = imp.load_source('rna.template.mod', rna_template_name)
+
     
-
-    if rnaType == 'cops':
-        legend = {"A":"first, middle", "B":"first split, middle", "C":"first,  middle split", "D":"first, middle, last", "E":"first split, middle, last", "F":"first,  middle split, last"}
-    
-    elif rnaType == 'yeast':
-        ll = ['I1 detached', 'I1, I2 attached']
-        jj = ['both helices', '1A', '1B', '1AB_joint']
-        kk = list(itertools.product(ll, jj))
-        # kk = [('I1 detached', '1A') ,('I1, I2 attached', '1A') ,('I1, I2 attached', 'both helices'),('I1 detached', 'both helices'),('I1 detached', '1AB_joint') ,('I1, I2 attached', '1AB_joint')]
-        legend = {a:a for a in kk}
-
-    elif rnaType == 'ribo4way':
-
-        # kk = ["type1", "type2"]
-        kk = ["type"+str(t) for t in range(1,2+1)]
-        # kk = [('I1 detached', '1A') ,('I1, I2 attached', '1A') ,('I1, I2 attached', 'both helices'),('I1 detached', 'both helices'),('I1 detached', '1AB_joint') ,('I1, I2 attached', '1AB_joint')]
-        legend = {a:a for a in kk}
-
-
-    elif rnaType == 'ribo4way_exact' or rnaType == 'ribo4way_pm':
-        
-        # kk = ["type1", "type2"]
-        kk = ["type"+str(t) for t in range(1,3+1)]
-        # kk = [('I1 detached', '1A') ,('I1, I2 attached', '1A') ,('I1, I2 attached', 'both helices'),('I1 detached', 'both helices'),('I1 detached', '1AB_joint') ,('I1, I2 attached', '1AB_joint')]
-        legend = {a:a for a in kk}
-        
-
-    structType = structTypeFuncs[rnaType]
+    structType = rna_template.struct_type
+    legend = rna_template.legend()
     winSize = 25
     percentTablesByFolder, rankTablesByFolder = getCummulativeCounts()
     # return
@@ -419,7 +349,17 @@ def getTbls(rnaType = 'yeast'):
     # printPercentTbl(z)
 
 
-    
+        
+def main():
+
+    if len(sys.argv) < 2:
+        sys.stderr.write("Pass parent folder as an argument!!\n")
+        return
+
+    # rna_template_name = 'rna_templates/ribo4way.py'
+    rna_template_name = 'rna_templates/hprj.py'
+    getTbls(rna_template_name)
+        
 
 if __name__ == "__main__":
     main()

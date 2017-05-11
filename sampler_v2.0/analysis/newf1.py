@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from __future__ import division
-import numpy as np
 import itertools
 import copy
 import time
@@ -10,23 +9,21 @@ import math
 import sys
 import random
 from collections import defaultdict
-import scipy.linalg as salg
-import scipy.stats as stats
 import argparse
 from os import listdir
 from os.path import isfile, join
-import sorter3
 import os
 from subprocess import Popen, PIPE
 import single_intervals_sums_ORIG
 from struct_comp import structTypeFuncs
+import imp
 
 
 
 sequences = []
+rfrncForClass = {}
 # legend = {"A":"first, middle", "B":"first split, middle", "C":"first,  middle split",\
           # "D":"first, middle, last", "E":"first split, middle, last", "F":"first,  middle split, last"}
-
 
 
 
@@ -50,7 +47,9 @@ def f1scoreFromStructs(knownStruct, predictedStruct):
 
     # print ''
     # print ''
-    return f1score(precision, recall)
+    f1 = f1score(precision, recall)
+    # print f1
+    return f1
 
 
 def f1score(p, r):
@@ -58,10 +57,12 @@ def f1score(p, r):
 
 
 def alignBases(win, seq1, seq2, needToReverse=True):
-    (_, i, j, w1, w2) = win
+    (l1,l2, i, j, w1, w2) = win
     oSeq1, oSeq2 = seq1, seq2
     # if needToReverse:
     #     seq2 = seq2[::-1]
+
+    seq2 = seq2[::-1]
 
     seq1 = "." + seq1[i-w1-1:i]
     seq2 = "." + seq2[j-w2-1:j]
@@ -98,13 +99,13 @@ def alignBases(win, seq1, seq2, needToReverse=True):
         if i==t[0]+1 and j==t[1]+1:
             # print i,j
             # re-add original indices
-            bonds.append( (win[1]-win[3]-1+i, win[2]-win[4]-1+j )  )
+            bonds.append( (win[2]-win[4]-1+i, win[3]-win[5]-1+j )  )
         i = t[0]
         j = t[1]
 
 
 
-
+    # print bonds
     return bonds
 
 
@@ -121,18 +122,18 @@ def getBasepairs(S):
     # print 'sqs =', sequences
     # print 'getting base pairs of S =', S
     basepairs = []
-    for (l,i,j,w1,w2) in S:    
+    for (l1,l2,i,j,w1,w2) in S:    
         # print (l,i,j,w1,w2) 
         # print sequences[l]
         # print sequences[l+1]
-        even = int(l / NUM_ODD)
-        odd = l % NUM_ODD
+        even = l1
+        odd = l2
 
         # print sequences[even], sequences[odd+even]
         # print (l,i,j,w1,w2)
-        bonds = alignBases( (l,i,j,w1,w2)  ,  sequences[even], sequences[odd + NUM_EVEN])
+        bonds = alignBases( (l1,l2,i,j,w1,w2)  ,  sequences[even], sequences[odd])
         for (i_, j_) in bonds:
-            basepairs.append( (l,i_,j_) )
+            basepairs.append( (l1,l2,i_,j_) )
 
         # print ""
 
@@ -185,7 +186,7 @@ def getPathsOfFiles(parentFolder, upto=1000):
             for fnum2, f2 in enumerate(os.listdir(fpath) ):
                 # print 'f2 =', f2
                 # begin = fileTypes[fileTypeIndx]
-                begin = 'metric_cut_reprs'
+                begin = 'representatives'
                 if f2[:len(begin)] == begin:
                     # print os.path.join(fpath,f2)
                     # only add to list of folders if it contains the file we are looking for
@@ -206,31 +207,22 @@ def main():
     #parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False)
     args = parser.parse_args()
 
-    # rnaType = 'yeast'
-    rnaType = 'ribo4way_pm'
-    # rnaType = 'ribo4way_exact'
+    global legend
+    global structType
+    global sequences
+    global rfrncForClass
 
-    if rnaType == 'cops':
-        legend = {"A":"first, middle", "B":"first split, middle", "C":"first,  middle split", "D":"first, middle, last", "E":"first split, middle, last", "F":"first,  middle split, last"}
-        rfrncForClass = {k:[(0, 12, 12, 11, 11), (0, 35, 35, 8, 8), (0, 47, 47, 5, 5)] for k in ['A','B','C','D','E','F']}
-        sequences = ['CGGUUUAAGUGGGCCCCGGUAAUCUUUUCGUACUCGCCAAAGUUGAAGAAGAUUAUCGGGGUUUUUGCUU', 'GCCAAAUUCACCCGGGGCCAUUAGAAAAGCAUGAGCGGUUUCAACUUCUUCUAAUAGCCCCAAAAACGAA']
-    elif rnaType == 'yeast':
-        ll = ['I1 detached', 'I1, I2 attached']
-        jj = ['both helices', '1A', '1B', '1AB_joint']
+    rna_template_name = 'rna_templates/hprj.py'
+    # rna_template_name = 'rna_templates/yeast_trunc.py'
+    rna_template = foo = imp.load_source('rna.template.mod', rna_template_name)
 
-        # kk = list(itertools.product(ll, jj))
-        kk = [('I1 detached', '1A') ,('I1, I2 attached', '1A') ,('I1, I2 attached', 'both helices'),('I1 detached', 'both helices'),('I1 detached', '1AB_joint') ,('I1, I2 attached', '1AB_joint')]
-        legend = {a:a for a in kk}
-        # legend = {('I1, I2 attached', '1AB_joint'):('I1, I2 attached', '1AB_joint')}
+    
+    structType = rna_template.struct_type
+    legend = rna_template.legend()
+    sequences = rna_template.sequences
+    rfrncForClass = rna_template.rfrncForClass()
 
-    elif rnaType == 'ribo4way_pm' or rnaType == 'ribo4way_exact':
-        kk = ['type1', 'type2', 'type3']
-        legend = {a:a for a in kk}
-
-        rfrncForClass = {k:[(0, 24, 20, 9, 9), (1, 10, 10, 9, 9), (2, 15, 19, 4, 4), (2, 30, 32, 5, 5), (3, 6, 6, 5, 5), (3, 14, 14, 3, 3)] for k in kk}
-        
-        sequences = ['UUUAUCCUGACGCUCCACCGAACG','GUCAACUCGUGGUGGCUUGC','CAGUUGAGCAUGGUCCAUUACAUGGUGCGG','AAAUAGAGAAGCGAACCAGAGAAACACACGCC']
-
+    # print rfrncForClass
 
 
     allTbls ={}
@@ -238,7 +230,7 @@ def main():
         allTbls[lv] = list([])
 
     for k in range(1, int(args.maxToLook)+1):
-        tblForK = getTbls(maxK = k, rnaType = rnaType, inputFolder=args.inputFolder)
+        tblForK = getTbls(maxK = k, inputFolder=args.inputFolder)
         for lv in legend.values():
             allTbls[lv].append(tblForK[lv])
 
@@ -246,50 +238,20 @@ def main():
     # print allTbls
     for lv in sorted(legend.values()):
         
-        print lv,'\t','\t'.join(map(str, map(lambda y: '%.2f' %(y,), allTbls[lv] )))
+        print lv,'\t','\t'.join(map(str, map(lambda y: '%.3f' %(y,), allTbls[lv] )))
     
 
 
-def getTbls(maxK = 1, rnaType = 'yeast', inputFolder = ''):
+def getTbls(maxK = 1, rnaType = '', inputFolder = ''):
     global legend
     global structType
     global sequences
+    global rfrncForClass
     
 
-    if rnaType == 'cops':
-        legend = {"A":"first, middle", "B":"first split, middle", "C":"first,  middle split", "D":"first, middle, last", "E":"first split, middle, last", "F":"first,  middle split, last"}
-        rfrncForClass = {k:[(0, 12, 12, 11, 11), (0, 35, 35, 8, 8), (0, 47, 47, 5, 5)] for k in ['A','B','C','D','E','F']}
-        sequences = ['CGGUUUAAGUGGGCCCCGGUAAUCUUUUCGUACUCGCCAAAGUUGAAGAAGAUUAUCGGGGUUUUUGCUU', 'GCCAAAUUCACCCGGGGCCAUUAGAAAAGCAUGAGCGGUUUCAACUUCUUCUAAUAGCCCCAAAAACGAA']
-    elif rnaType == 'yeast':
-        ll = ['I1 detached', 'I1, I2 attached']
-        jj = ['both helices', '1A', '1B', '1AB_joint']
 
-        # kk = list(itertools.product(ll, jj))
-        kk = [('I1 detached', '1A') ,('I1, I2 attached', '1A') ,('I1, I2 attached', 'both helices'),('I1 detached', 'both helices'),('I1 detached', '1AB_joint') ,('I1, I2 attached', '1AB_joint')]
-        legend = {a:a for a in kk}
-        # legend = {('I1, I2 attached', '1AB_joint'):('I1, I2 attached', '1AB_joint')}
-
-        rfrncForClass = {}
-        for (a,b) in legend.keys():
-            if b == '1A':
-                rfrncForClass[(a,b)] = [(0, 7, 7, 2, 2), (2, 8, 8, 3, 3), (2, 12, 13, 3, 3), (1, 16, 18, 4, 4)]
-            else:
-                rfrncForClass[(a,b)] = [(0, 7, 7, 2, 2), (2, 8, 8, 3, 3), (2, 12, 13, 3, 3), (1, 16, 18, 4, 4), (1, 19, 23, 2, 2)]
     
-        sequences = ['NNNNUGUAUGNNNN', 'NNNNACAGAGAUGAUCAGCNNNN', 'NNNNAUGAUGUGAACUAGAUUCGNNNN', 'NNNNUACUAACACCNNNN']
-
-    elif rnaType == 'ribo4way_pm' or rnaType == 'ribo4way_exact':
-        kk = ['type1', 'type2', 'type3']
-        legend = {a:a for a in kk}
-
-        # rfrncForClass = {k:[(0, 24, 20, 9, 9), (1, 10, 10, 9, 9), (2, 15, 19, 4, 4), (2, 30, 32, 5, 5), (3, 6, 6, 5, 5), (3, 14, 14, 3, 3)] for k in kk}
-        rfrncForClass = {k:[(0, 20, 24, 9, 9), (1, 10, 10, 9, 9), (2, 6, 6, 5, 5), (2, 14, 14, 3, 3), (3, 19, 15, 4, 4), (3, 32, 30, 5, 5)] for k in kk}
-        
-        # sequences = ['UUUAUCCUGACGCUCCACCGAACG','CAGUUGAGCAUGGUCCAUUACAUGGUGCGG', 'GUCAACUCGUGGUGGCUUGC','AAAUAGAGAAGCGAACCAGAGAAACACACGCC']
-        sequences =   ["GUCAACUCGUGGUGGCUUGC","AAAUAGAGAAGCGAACCAGAGAAACACACGCC","UUUAUCCUGACGCUCCACCGAACG","CAGUUGAGCAUGGUCCAUUACAUGGUGCGG"]
-
-
-    structType = structTypeFuncs[rnaType]
+    
 
 
     
@@ -328,7 +290,7 @@ def getTbls(maxK = 1, rnaType = 'yeast', inputFolder = ''):
                     # print data
                     struct = eval(data[1])
                     # print struct
-                    struct = tuple(sorter3.sortConfig(struct))
+                    # struct = tuple(sorter3.sortConfig(struct))
                     # print struct
                     # print structType(struct)
                     # print ''
@@ -364,6 +326,7 @@ def getTbls(maxK = 1, rnaType = 'yeast', inputFolder = ''):
                 # if sClass == 'C':
                 # print firstRep
 
+                # print rfrncForClass
                 # fsi[(sClass, num)] = f1scoreFromStructs(firstRep, rfrncForClass[sClass])
                 fsi[(sClass, num)] = f1scoreFromStructs(rfrncForClass[sClass], firstRep)
 
@@ -372,7 +335,7 @@ def getTbls(maxK = 1, rnaType = 'yeast', inputFolder = ''):
 
 
     ret = {}
-
+    # print 'A'
     # for l,lv in legend.iteritems():
     for l in sorted(legend.keys()):
         lv = legend[l]
@@ -385,15 +348,15 @@ def getTbls(maxK = 1, rnaType = 'yeast', inputFolder = ''):
                 lcount += 1
                 ss += fsi[(l, i)]
 
-        print '{0: <27}'.format(lv),
+        # print '{0: <27}'.format(lv),
         if lcount > 0:
             # print '%s'.ljust %(lv,), ':',
             
-            print ss/lcount
+            # print ss/lcount
             ret[lv] = ss/lcount
         else:
             ret[lv] = 0
-            print 0
+            # print 0
 
     return ret
 
