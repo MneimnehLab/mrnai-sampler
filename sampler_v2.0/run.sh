@@ -49,13 +49,18 @@ cat structs_bip.out \
 	| distance/sort_terminal.py \
 	> mystructs_sorted_by_terminal.out
 
-cat mystructs_sorted_by_terminal.out \
-	| distance/break_wins.py "$SEQUENCES_FILE" \
-	> mystructs_broken.out
+# cat mystructs_sorted_by_terminal.out \
+# 	| distance/break_wins.py "$SEQUENCES_FILE" \
+# 	> mystructs_broken.out
 
-cat mystructs_broken.out \
+# cat mystructs_broken.out \
+# 	| distance/dist_bipartite.py \
+# 	> matrix.out
+
+cat mystructs_sorted_by_terminal.out \
 	| distance/dist_bipartite.py \
 	> matrix.out
+
 
 Rscript clustering/script_generic.r matrix.out
 
@@ -63,7 +68,7 @@ python clustering/read_clusters.py -c clusters.out -s mystructs_sorted_by_termin
 	> representatives.out
 
 cp mystructs_sorted_by_terminal.out logs/"$UNIQ_ID"/
-cp mystructs_broken.out logs/"$UNIQ_ID"/
+# cp mystructs_broken.out logs/"$UNIQ_ID"/
 # cp matrix logs/"$UNIQ_ID"/
 cp representatives.out logs/"$UNIQ_ID"/
 

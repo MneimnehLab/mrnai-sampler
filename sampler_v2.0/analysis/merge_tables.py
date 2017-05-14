@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 
 
@@ -33,7 +35,7 @@ def main():
 
         # print 'for', reading
         # print line
-        data = line.split()
+        data = line.split('\t')
         # print data
         label = data[0]
         vals = map(float, data[1:])

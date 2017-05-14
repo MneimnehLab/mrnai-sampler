@@ -41,6 +41,8 @@ def struct_type(struct):
     else:
         helix = "no helix"
 
+    if (introns, helix) == ('I1, I2 attached', '1AB_joint'):
+        print struct
     return (introns, helix)
 
 

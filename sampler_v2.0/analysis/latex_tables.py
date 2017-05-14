@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 
 
@@ -33,7 +35,7 @@ def main():
 
         # print 'for', reading
         # print line
-        data = line.split()
+        data = line.split('\t')
         # print data
         label = data[0]
         vals = map(float, data[1:])
@@ -70,7 +72,8 @@ def main():
     for label in distinctLabels:
         row = []
         # print label, '\t',
-        row.append(legend[label])
+        # row.append(legend[label])
+        row.append(label)
         for num in range(5):
             # print percetnages, rank, f1
             # print tbls['percent'][label][num],'\t',
@@ -91,7 +94,8 @@ def main():
     for label in distinctLabels:
         row = []
         # print label, '\t',
-        row.append(legend[label])
+        # row.append(legend[label])
+        row.append(label)
         for num in range(5,10):
             # print percetnages, rank, f1
             # print tbls['percent'][label][num],'\t',

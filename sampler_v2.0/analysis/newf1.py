@@ -13,9 +13,9 @@ import argparse
 from os import listdir
 from os.path import isfile, join
 import os
-from subprocess import Popen, PIPE
-import single_intervals_sums_ORIG
-from struct_comp import structTypeFuncs
+# from subprocess import Popen, PIPE
+# import single_intervals_sums_ORIG
+# from struct_comp import structTypeFuncs
 import imp
 
 
@@ -160,9 +160,9 @@ def minArgMin(mylist):
     return (minVal, argMin)
 
 
-def getDistance(A,B):
+# def getDistance(A,B):
 
-    return single_intervals_sums_ORIG.processByStruct([A,B])
+#     return single_intervals_sums_ORIG.processByStruct([A,B])
     
 
 
@@ -204,6 +204,7 @@ def main():
     # parser.add_argument('-i', '--input-folder', dest='inputFolder', default='convg_cops_e_r20')
     parser.add_argument('-i', '--input-folder', dest='inputFolder', default='.')
     parser.add_argument('-k', '--max-to-look', dest='maxToLook', default=1)
+    parser.add_argument('-n', '--name', dest='name', required=True)
     #parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False)
     args = parser.parse_args()
 
@@ -212,7 +213,7 @@ def main():
     global sequences
     global rfrncForClass
 
-    rna_template_name = 'rna_templates/hprj.py'
+    rna_template_name = 'rna_templates/' + str(args.name) + '.py'
     # rna_template_name = 'rna_templates/yeast_trunc.py'
     rna_template = foo = imp.load_source('rna.template.mod', rna_template_name)
 
@@ -234,7 +235,7 @@ def main():
         for lv in legend.values():
             allTbls[lv].append(tblForK[lv])
 
-    print 'allTbls:'
+    print 'f1s:'
     # print allTbls
     for lv in sorted(legend.values()):
         

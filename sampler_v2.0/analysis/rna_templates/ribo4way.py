@@ -1,3 +1,4 @@
+sequences = 'GCAAGCCACCUCGCAGUCCUAUUU&GUCAACUCGUGGUGGCUUGC&GGCGUGGUACAUUACCUGGUACGAGUUGAC&AAAUAGAGAAGCGAACCAGAGAAACACACGCC'.split('&')
 
 def struct_type(struct):
     # struct = sorted(struct)
@@ -62,3 +63,13 @@ def legend():
     legend_ = {a:a for a in kk}
         
     return legend_
+
+def rfrncForClass():
+    kk = ['type1', 'type2', 'type3']
+    legend = {a:a for a in kk}
+
+    # rfrncForClass_ = {k:[(0, 20, 24, 9, 9), (1, 10, 10, 9, 9), (2, 6, 6, 5, 5), (2, 14, 14, 3, 3), (3, 19, 15, 4, 4), (3, 32, 30, 5, 5)] for k in kk}
+    rfrncForClass_ = {k:[(1, 2, 10, 10, 9, 9), (3, 0, 6, 6, 5, 5), (3, 0, 14, 14, 3, 3), (1, 0, 20, 24, 9, 9), (3, 2, 19, 15, 4, 4), (3, 2, 32, 30, 5, 5)] for k in kk}
+
+    return rfrncForClass_
+

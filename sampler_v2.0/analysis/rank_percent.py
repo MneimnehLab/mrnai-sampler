@@ -17,16 +17,17 @@ fileTypes = ["xluster", "metric_silh_reprs", "representatives"]
 structType = None
 
 try:
-    parentFolder = sys.argv[1]
+    parentFolder = sys.argv[2]
 except:
     parentFolder = '.'
 
-try:
-    fileTypeIndx = int(sys.argv[2])
-except:
-    fileTypeIndx = 2
+# try:
+    # fileTypeIndx = int(sys.argv[2])
+    # raise
+# except:
+fileTypeIndx = 2
 
-verbose = True
+verbose = False
 
 
 
@@ -253,6 +254,7 @@ def getCummulativeCounts():
         # print d
         currPercentages = {}
         currRanks = {}
+        
         if verbose:
             print 'in dir', fpath
             print 'N =', N
@@ -305,7 +307,7 @@ def printPercentTbl(tbl):
     # for k in ['A','B','C','D','E','F']:
     for k in sorted(legend.keys()):
         v = tbl[k]
-        print legend[k],'\t','\t'.join(map(str, map(lambda y: '%.1f' %(y,), v )))
+        print legend[k],'\t','\t'.join(map(str, map(lambda y: '%.4f' %(y,), v )))
         
 
 
@@ -316,7 +318,7 @@ def getTbls(rna_template_name):
     global structType
 
     # load template from module (rna_template)
-    rna_template = foo = imp.load_source('rna.template.mod', rna_template_name)
+    rna_template = foo = imp.load_source('rna', rna_template_name)
 
     
     structType = rna_template.struct_type
@@ -352,12 +354,13 @@ def getTbls(rna_template_name):
         
 def main():
 
-    if len(sys.argv) < 2:
-        sys.stderr.write("Pass parent folder as an argument!!\n")
+    if len(sys.argv) < 3:
+        sys.stderr.write("Pass name of template and parent folder as an argument!!\n")
         return
 
+
     # rna_template_name = 'rna_templates/ribo4way.py'
-    rna_template_name = 'rna_templates/hprj.py'
+    rna_template_name = 'rna_templates/' + sys.argv[1] + '.py'
     getTbls(rna_template_name)
         
 
