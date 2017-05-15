@@ -61,13 +61,8 @@ private:
 	double bestPairingRegions(const vector<Region> & regions) ;
 	double regionPairScore(const Region & x, const Region & y) ;
 
-	void mapEdgesToWindowList(vector<Window> * vec);
-	void sweepLeftToRight(unordered_map<std::pair<int,int>, mrnai_tools::BitSetTools::BIT_STORE*, pairhash> & winBitsOnLeftOfEdge);
-	void sweepRightToLeft(unordered_map<std::pair<int,int>, mrnai_tools::BitSetTools::BIT_STORE*, pairhash> & winBitsOnRightOfEdge);
-
-	void interval_sweepRightToLeft(int level, pair_bitmap & intervalBitsOnRightOfEdge);
-	void interval_sweepLeftToRight(int level, pair_bitmap & intervalBitsOnRightOfEdge);
-
+	void sweepRightToLeft(int level, pair_bitmap & winBitsOnRightOfEdge);
+	void sweepLeftToRight(int level, pair_bitmap & winBitsOnLeftOfEdge);
 
 	void map_corners_to_windows(vector<Window> * vec);
 
@@ -103,6 +98,8 @@ int maxRNALen;
 	int numOfLevels;
 	int numOfRNAs;
 
+	int numOfWins;
+
 
 	// unordered_map<std::tuple<int,int,int>, vector<Window> *, triplehash> windowsByEndingEdge;
 
@@ -111,17 +108,14 @@ int maxRNALen;
 	int sampleAddOrReplace(const vector<Window> & vec, int level1, int level2, int level_pair_id, int & replacing, int & totalSize, bool & staying);
 	int getNbrSizeOnly(const vector<Window> & vec, int level1, int level2, int level_pair_id);
 
-	unordered_map<std::pair<int,int>, vector<int> *, pairhash> windowsByLeftEdge;
-	unordered_map<std::pair<int,int>, vector<int> *, pairhash> windowsByRightEdge;
-
-
+	
 	void map_corners_to_regions(vector<Window> * vec);
 	// intervals_by_right_corner[level] -> hashtable of interval_str -> 
 	vector<vector<vector<int>>> regions_by_right_corner;
 	vector<vector<vector<int>>> regions_by_left_corner;
 
-	unordered_map<std::pair<int,int>, vector<int> *, pairhash> map_regions_by_right_corner;
-	unordered_map<std::pair<int,int>, vector<int> *, pairhash> map_regions_by_left_corner;
+	unordered_map<std::pair<int,int>, vector<int>, pairhash> map_windows_by_right_corner;
+	unordered_map<std::pair<int,int>, vector<int>, pairhash> map_windows_by_left_corner;
 
 
 

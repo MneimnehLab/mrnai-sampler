@@ -67,5 +67,4 @@ inline void BitSetTools::setBitTo0(int winNum, BitSetTools::BIT_STORE array[])
 }
 
 
-
 }

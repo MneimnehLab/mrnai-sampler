@@ -5,11 +5,11 @@ UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Linux)
 	CC=g++
-	C++FLAGS= -std=c++11 -pedantic -O3 #-Wall : temporarily remove this to silence unused-var warnings
+	C++FLAGS= -std=c++11 -pedantic -O3 -Wall #: temporarily remove this to silence unused-var warnings
 endif
 ifeq ($(UNAME_S),Darwin)
 	CC=clang++
-	C++FLAGS= -std=c++11 -stdlib=libc++ -pedantic -O3 #-Wall : temporarily remove this to silence unused-var warnings
+	C++FLAGS= -std=c++11 -stdlib=libc++ -pedantic -O3 -Wall #: temporarily remove this to silence unused-var warnings
 endif
 
 COMMON_OBJ  = $(BUILD_DIR)/Region.o $(BUILD_DIR)/Window.o $(BUILD_DIR)/WindowContainer.o 

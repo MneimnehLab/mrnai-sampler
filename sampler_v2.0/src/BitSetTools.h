@@ -11,8 +11,8 @@ public:
 	typedef uint64_t BIT_STORE;
 	typedef BIT_STORE* Container;
 private:
-	int universe_size;
-	int array_size;
+	size_t universe_size;
+	size_t array_size;
 public:
 	BitSetTools(int universe_size) : universe_size(universe_size)
 	{
@@ -109,6 +109,15 @@ public:
 		std::cout << std::endl;
 	}
 
+	inline size_t num_words()
+	{
+	    return array_size;
+	}
+
+	inline size_t get_universe_size()
+	{
+		return universe_size;
+	}
 
 
 

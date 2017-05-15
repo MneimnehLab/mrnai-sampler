@@ -34,6 +34,7 @@ using std::endl;
 using std::pair;
 
 
+bool regionComparator (Region i, Region j) { return (i<j); }
 
 
 WindowContainer::WindowContainer(vector<int> even_levels, vector<int> odd_levels) 
@@ -76,10 +77,10 @@ WindowContainer::~WindowContainer()
         if(windowsByLevel[i] != nullptr)
         {
             delete windowsByLevel[i];
-            cout << "deleted level" << endl;
+            // cout << "deleted level" << endl;
         }
     }
-    cout << "deleting" << endl;
+    // cout << "deleting" << endl;
 
     delete[] winThatCreateCycles;
 }
@@ -148,202 +149,106 @@ void WindowContainer::addWindow(Window win)
     maxRNALen = MAX(maxRNALen, MAX(win.i, win.j));
 }
 
-bool myfunction (Window i, Window j) { return (i<j); }
-bool regionComparator (Region i, Region j) { return (i<j); }
 
-
-
-
-void WindowContainer::mapEdgesToWindowList(vector<Window> * vec)
-{
-    // Create hashtables: windows by left edge, right edge
-    int counter=0;
-    for(Window win : *vec)
-    {   
-        pair<int, int> rightEdge = std::make_pair(win.i, win.j);
-        pair<int, int> leftEdge = std::make_pair(win.i-win.w1, win.j-win.w2);
-        
-        unordered_map<pair<int,int>, vector<int> *, pairhash>::const_iterator got = windowsByRightEdge.find (rightEdge);
-        if ( got == windowsByRightEdge.end() )
-            windowsByRightEdge[rightEdge] = new vector<int>();
-        windowsByRightEdge[rightEdge]->push_back(counter);
-
-        got = windowsByLeftEdge.find (leftEdge);
-        if ( got == windowsByLeftEdge.end() )
-            windowsByLeftEdge[leftEdge] = new vector<int>();
-        windowsByLeftEdge[leftEdge]->push_back(counter);
-
-        counter++;
-    }
-}
-
-void WindowContainer::map_corners_to_regions(vector<Window> * vec)
-{
-    // vector<unordered_map<string, vector<int> *>> regions_by_right_corner;
-    // vector<unordered_map<string, vector<int> *>> regions_by_left_corner;
-
-    // Doing this to filter duplicate regions
-    set<Region> regions_set;
-    for(Window win : *vec)
-    {   
-        int even = win.l1;
-        int odd  = win.l2;
-    
-        Region r1(even, win.i, win.w1);
-        Region r2(odd, win.j, win.w2);
-        regions_set.insert(r1);
-        regions_set.insert(r2);
-    }
-    
-    // Regions can now be indexed in region_vector
-    vector<Region> region_vector(regions_set.begin(), regions_set.end());
-    
-
-    // vector<vector<int>> temp(maxRNALen);
-    // regions_by_right_corner.resize(numEven + numOdd, temp);
-    // regions_by_left_corner.resize(numEven + numOdd, temp);
-
-    int rcounter = 0;
-    for(Region region : region_vector)
-    {
-        // cout << region << endl;
-        int right_corner = region.i;
-        int left_corner = region.i - region.w;
-
-        pair<int, int> right = std::make_pair(region.l, right_corner);
-        pair<int, int> left = std::make_pair(region.l, left_corner);
-        
-        unordered_map<pair<int,int>, vector<int> *, pairhash>::const_iterator got = map_regions_by_right_corner.find (right);
-        if ( got == map_regions_by_right_corner.end() )
-            map_regions_by_right_corner[right] = new vector<int>();
-        map_regions_by_right_corner[right]->push_back(rcounter);
-
-        got = map_regions_by_left_corner.find (left);
-        if ( got == map_regions_by_left_corner.end() )
-            map_regions_by_left_corner[left] = new vector<int>();
-        map_regions_by_left_corner[left]->push_back(rcounter);
-    }
-
-}
-
-
-
+// Allows us to look up all windows that have an interval
+// beginning or ending at a given point.
 void WindowContainer::map_corners_to_windows(vector<Window> * vec)
 {
-    // vector<unordered_map<string, vector<int> *>> regions_by_right_corner;
-    // vector<unordered_map<string, vector<int> *>> regions_by_left_corner;
-
     int counter = 0;
     for(Window win : *vec)
     {
         int even = win.l1;
         int odd  = win.l2;
 
+        // even right corner
         int even_right_corner = win.i;
-        int even_left_corner = win.i - win.w1;
-        int odd_right_corner = win.j;
-        int odd_left_corner = win.j - win.w2;
-
         pair<int, int> even_right = std::make_pair(even, even_right_corner);
+        map_windows_by_right_corner[even_right].push_back(counter);
+
+        // even left corner
+        int even_left_corner = win.i - win.w1;
         pair<int, int> even_left = std::make_pair(even, even_left_corner);
+        map_windows_by_left_corner [even_left].push_back(counter);
 
+        // odd right corner
+        int odd_right_corner = win.j;
         pair<int, int> odd_right = std::make_pair(odd, odd_right_corner);
+        map_windows_by_right_corner[odd_right].push_back(counter);
+
+        // odd left corner
+        int odd_left_corner = win.j - win.w2;
         pair<int, int> odd_left = std::make_pair(odd, odd_left_corner);
-        
-        unordered_map<pair<int,int>, vector<int> *, pairhash>::const_iterator got;
-
-        got = map_regions_by_right_corner.find (even_right);
-        if ( got == map_regions_by_right_corner.end() )
-            map_regions_by_right_corner[even_right] = new vector<int>();
-        map_regions_by_right_corner[even_right]->push_back(counter);
-
-        got = map_regions_by_left_corner.find (even_left);
-        if ( got == map_regions_by_left_corner.end() )
-            map_regions_by_left_corner[even_left] = new vector<int>();
-        map_regions_by_left_corner[even_left]->push_back(counter);
-
-
-
-
-        got = map_regions_by_right_corner.find (odd_right);
-        if ( got == map_regions_by_right_corner.end() )
-            map_regions_by_right_corner[odd_right] = new vector<int>();
-        map_regions_by_right_corner[odd_right]->push_back(counter);
-
-        got = map_regions_by_left_corner.find (odd_left);
-        if ( got == map_regions_by_left_corner.end() )
-            map_regions_by_left_corner[odd_left] = new vector<int>();
-        map_regions_by_left_corner[odd_left]->push_back(counter);
+        map_windows_by_left_corner[odd_left].push_back(counter);
 
         counter++;
-
     }
-
 }
 
-void WindowContainer::interval_sweepRightToLeft(int level, pair_bitmap & intervalBitsOnRightOfEdge)
+void WindowContainer::sweepRightToLeft(int level, pair_bitmap & winBitsOnRightOfEdge)
 {
-    for(int i=maxRNALen-1;i>0;i--)
+    // use iterators everywhere to avoid looking up the same (key,value) pair more than once
+    for(int i=maxRNALen-1;i>0;i--) // n -> 0 direction crucial for correctness
     {
-        // Idea: intervalBitsOnRightOfEdge[(level,i)] = intervalBitsOnRightOfEdge[(level, i+1)]  -> A
-        //                               union intervals_starting_from[(level,i+1)]  -> B
+        // Idea: winBitsOnRightOfEdge[(level,i)] = winBitsOnRightOfEdge[(level, i+1)]  -> A
+        //                                   union wins_starting_from[(level,i+1)]  -> B
         
         pair<int, int> lev_i   = std::make_pair(level,i);
-        pair<int, int> lev_i_1   = std::make_pair(level,i+1);
+        pair<int, int> lev_i_1 = std::make_pair(level,i+1);
 
-        intervalBitsOnRightOfEdge[lev_i] = new mrnai_tools::BitSetTools::BIT_STORE[bitVecLongs];
-        for(int k=0;k<bitVecLongs;k++) 
-            intervalBitsOnRightOfEdge[lev_i][k] = 0;
+        mrnai_tools::BitSetTools bst(numOfWins);
+        mrnai_tools::BitSetTools::Container temp_bitset = bst.makeBitSet();
 
         // Init with A
-        if(intervalBitsOnRightOfEdge.find(lev_i_1) != intervalBitsOnRightOfEdge.end())
-            for(int k=0;k<bitVecLongs;k++) 
-                intervalBitsOnRightOfEdge[lev_i][k] = intervalBitsOnRightOfEdge[lev_i_1][k];
+        auto iterA = winBitsOnRightOfEdge.find(lev_i_1);
+        if(iterA != winBitsOnRightOfEdge.end())
+            bst.s_union(temp_bitset, iterA->second);
 
         // union with B
-        unordered_map<pair<int,int>, vector<int> *, pairhash>::const_iterator gotL1 = map_regions_by_left_corner.find (lev_i_1);
-        if ( gotL1 != map_regions_by_left_corner.end() )
+        auto gotL1 = map_windows_by_left_corner.find (lev_i_1);
+        if ( gotL1 != map_windows_by_left_corner.end() )
         {
-            // vector<int> wins = *(windowsByLeftEdge[i1j2]);
-            vector<int> intervals = *(gotL1->second);
+            vector<int> intervals = gotL1->second;
             for(int w_ : intervals)
-                setBitTo1(w_, intervalBitsOnRightOfEdge[lev_i]);
+                setBitTo1(w_, temp_bitset);
         }
+
+        winBitsOnRightOfEdge[lev_i] = temp_bitset;
     }
 }
 
 
 
-void WindowContainer::interval_sweepLeftToRight(int level, pair_bitmap & intervalBitsOnLeftOfEdge)
+void WindowContainer::sweepLeftToRight(int level, pair_bitmap & winBitsOnLeftOfEdge)
 {
     for(int i=1;i<=maxRNALen;i++)
     {
-        // Idea: intervalBitsOnLeftOfEdge[(level,i)] = intervalBitsOnLeftOfEdge[(level, i-1)]  -> A
-        //                               union intervals_endint_at[(level,i-1)]  -> B
+        // Idea: winBitsOnLeftOfEdge[(level,i)] = winBitsOnLeftOfEdge[(level, i-1)]  -> A
+        //                                       union intervals_endint_at[(level,i-1)]  -> B
         
         pair<int, int> lev_i   = std::make_pair(level,i);
         pair<int, int> lev_i_1   = std::make_pair(level,i-1);
 
-        intervalBitsOnLeftOfEdge[lev_i] = new mrnai_tools::BitSetTools::BIT_STORE[bitVecLongs];
-        for(int k=0;k<bitVecLongs;k++) 
-            intervalBitsOnLeftOfEdge[lev_i][k] = 0;
+        mrnai_tools::BitSetTools bst(numOfWins);
+        mrnai_tools::BitSetTools::Container temp_bitset = bst.makeBitSet();
 
         // Init with A
-        if(intervalBitsOnLeftOfEdge.find(lev_i_1) != intervalBitsOnLeftOfEdge.end())
-            for(int k=0;k<bitVecLongs;k++) 
-                intervalBitsOnLeftOfEdge[lev_i][k] = intervalBitsOnLeftOfEdge[lev_i_1][k];
-
+        auto iterA = winBitsOnLeftOfEdge.find(lev_i_1);
+        if(iterA != winBitsOnLeftOfEdge.end())
+            bst.copy(temp_bitset, iterA->second);
+                
         // union with B
-        unordered_map<pair<int,int>, vector<int> *, pairhash>::const_iterator gotL1 = map_regions_by_right_corner.find (lev_i_1);
-        if ( gotL1 != map_regions_by_left_corner.end() )
+        auto gotL1 = map_windows_by_right_corner.find (lev_i_1);
+        if ( gotL1 != map_windows_by_left_corner.end() )
         {
-            // vector<int> wins = *(windowsByLeftEdge[i1j2]);
-            vector<int> intervals = *(gotL1->second);
+            vector<int> intervals = gotL1->second;
             for(int w_ : intervals)
-                setBitTo1(w_, intervalBitsOnLeftOfEdge[lev_i]);
+                setBitTo1(w_, temp_bitset);
         }
+
+        winBitsOnLeftOfEdge[lev_i] = temp_bitset;
     }
 }
+
 
 
 
@@ -361,45 +266,42 @@ void WindowContainer::makeOverlaps_with_intervals()
     cout << "Max RNA Len = " << maxRNALen << endl;
     auto begin = chrono::high_resolution_clock::now();    
 
-    // we will make this a pointer so that it is consistent with pointer from previous approach
-    // ... so we won't have to change much code
-    vector<Window> * vec = &allWins;
-
     //+1 because need to ceil (should just actually use ceil ^_^)
-    bitVecLongs = vec->size()/(sizeof(mrnai_tools::BitSetTools::BIT_STORE)*8) + 1;
+    numOfWins   = allWins.size();
 
-    mrnai_tools::BitSetTools bst(vec->size());
-        
-
+    // create tools for this universe size
+    mrnai_tools::BitSetTools bst(numOfWins);
+    bitVecLongs = bst.num_words();
+    
+    // we will reset this everytime
     winThatCreateCycles = bst.makeBitSet();
 
-    int c = 0;
+    // Create set of windows per level
     for(int i=0; i<numOfLevels; i++)
         levelMapper[i] = bst.makeBitSet();
 
-    map_corners_to_windows(vec);
+    // create mappings from Corner point to list of windows that have that
+    // point as start or end
+    map_corners_to_windows(&allWins);
 
-    vector<pair_bitmap> winBitsOnRightOfEdge(numEven + numOdd);
-    vector<pair_bitmap> winBitsOnLeftOfEdge(numEven + numOdd);
+    vector<pair_bitmap> winBitsOnRightOfPeg(numEven + numOdd);
+    vector<pair_bitmap> winBitsOnLeftOfPeg(numEven + numOdd);
 
     for(int num=0; num<numEven+numOdd; num++)
     {
-        interval_sweepRightToLeft(num, winBitsOnRightOfEdge[num]);
-        interval_sweepLeftToRight(num, winBitsOnLeftOfEdge[num]);
+        sweepRightToLeft(num, winBitsOnRightOfPeg[num]);
+        sweepLeftToRight(num, winBitsOnLeftOfPeg[num]);
     }
 
     
-    int vecSize = vec->size();
     int counter = 0;
-    for(std::vector<Window>::iterator it = vec->begin(); it != vec->end(); ++it, counter++)
+    for(const Window& win : allWins)
     {
-        Window win = *it;   
-
         int even = win.l1;
         int odd  = win.l2;
     
         int level_id = level_pair_to_id[even][odd];
-        setBitTo1(counter, levelMapper[level_id]);
+        setBitTo1(counter++, levelMapper[level_id]);
     }
 
     counter = 0;
@@ -413,120 +315,103 @@ void WindowContainer::makeOverlaps_with_intervals()
     mrnai_tools::BitSetTools::Container tempNonOverlapArray_right_B = bst.makeBitSet();
 
 
-    for(std::vector<Window>::iterator it = vec->begin(); it != vec->end(); ++it, counter++)
+    for(const Window& win : allWins)
     {
-        Window win = *it;   
-
         int even = win.l1;
         int odd  = win.l2;
     
         mrnai_tools::BitSetTools::Container tempOverlapArray    = bst.makeBitSet();
         mrnai_tools::BitSetTools::Container tempNonOverlapArray = bst.makeBitSet();
         
-        for(int k=0;k<bitVecLongs;k++) 
-        {
-            tempNonOverlapArray[k] = 0;
-            tempNonOverlapArray_left_A[k] = 0;
-            tempNonOverlapArray_right_A[k] = 0;
-            tempNonOverlapArray_left_B[k] = 0;
-            tempNonOverlapArray_right_B[k] = 0;
-        }
-
+        // Reset bit arrays so that we may use them again 
+        // without reallocating
+        bst.reset(tempNonOverlapArray);
+        bst.reset(tempNonOverlapArray_left_A);
+        bst.reset(tempNonOverlapArray_right_A);
+        bst.reset(tempNonOverlapArray_left_B);
+        bst.reset(tempNonOverlapArray_right_B);
 
         int even_right_corner = win.i;
-        int even_left_corner = win.i - win.w1;
-        int odd_right_corner = win.j;
-        int odd_left_corner = win.j - win.w2;
-
+        int even_left_corner  = win.i - win.w1;
+        int odd_right_corner  = win.j;
+        int odd_left_corner   = win.j - win.w2;
 
         pair<int, int> even_right = std::make_pair(even, even_right_corner);
-        pair<int, int> even_left = std::make_pair(even, even_left_corner);
+        pair<int, int> even_left  = std::make_pair(even, even_left_corner);
 
-        pair<int, int> odd_right = std::make_pair(odd, odd_right_corner);
-        pair<int, int> odd_left = std::make_pair(odd, odd_left_corner);
+        pair<int, int> odd_right  = std::make_pair(odd,  odd_right_corner);
+        pair<int, int> odd_left   = std::make_pair(odd,  odd_left_corner);
         
         pair<int, int> even_right_plus1 = std::make_pair(even, even_right_corner+1);
         pair<int, int> even_left_minus1 = std::make_pair(even, even_left_corner-1);
 
-        pair<int, int> odd_right_plus1 = std::make_pair(odd, odd_right_corner+1);
-        pair<int, int> odd_left_minus1 = std::make_pair(odd, odd_left_corner-1);
+        pair<int, int> odd_right_plus1  = std::make_pair(odd,  odd_right_corner+1);
+        pair<int, int> odd_left_minus1  = std::make_pair(odd,  odd_left_corner-1);
 
 
 
-        pair_bitmap::const_iterator gotL0 = winBitsOnLeftOfEdge[even].find (even_left);
-        pair_bitmap::const_iterator gotR0 = winBitsOnRightOfEdge[even].find (even_right);
+        pair_bitmap::const_iterator gotL0 = winBitsOnLeftOfPeg [even].find(even_left);
+        pair_bitmap::const_iterator gotR0 = winBitsOnRightOfPeg[even].find(even_right);
 
-        pair_bitmap::const_iterator gotL1 = winBitsOnLeftOfEdge[odd].find (odd_left);
-        pair_bitmap::const_iterator gotR1 = winBitsOnRightOfEdge[odd].find (odd_right);
+        pair_bitmap::const_iterator gotL1 = winBitsOnLeftOfPeg [odd].find(odd_left);
+        pair_bitmap::const_iterator gotR1 = winBitsOnRightOfPeg[odd].find(odd_right);
 
     
-        pair_bitmap::const_iterator gotL0_minus1 = winBitsOnLeftOfEdge[even].find (even_left_minus1);
-        pair_bitmap::const_iterator gotR0_plus1 = winBitsOnRightOfEdge[even].find (even_right_plus1);
+        pair_bitmap::const_iterator gotL0_minus1 = winBitsOnLeftOfPeg [even].find(even_left_minus1);
+        pair_bitmap::const_iterator gotR0_plus1  = winBitsOnRightOfPeg[even].find(even_right_plus1);
 
-        pair_bitmap::const_iterator gotL1_minus1 = winBitsOnLeftOfEdge[odd].find (odd_left_minus1);
-        pair_bitmap::const_iterator gotR1_plus1 = winBitsOnRightOfEdge[odd].find (odd_right_plus1);
-
-        // Non overlaps: (top_left intersection bot_left) union (top_right intersection bot_right) 
+        pair_bitmap::const_iterator gotL1_minus1 = winBitsOnLeftOfPeg [odd].find(odd_left_minus1);
+        pair_bitmap::const_iterator gotR1_plus1  = winBitsOnRightOfPeg[odd].find(odd_right_plus1);
 
 
-        // left: gap on bottom
-        if(gotL0 != winBitsOnLeftOfEdge[even].end())
+        // Non overlaps: union of 4 sets
+        // where each set is the intersection of two sets of windows
+
+        // windows on left: gap on bottom
+        if(gotL0 != winBitsOnLeftOfPeg[even].end())
             bst.copy(tempNonOverlapArray_left_A, gotL0->second);
 
-        if(gotL1_minus1 != winBitsOnLeftOfEdge[odd].end())
+        if(gotL1_minus1 != winBitsOnLeftOfPeg[odd].end())
             bst.s_intersection(tempNonOverlapArray_left_A, gotL1_minus1->second);
         else
             bst.reset(tempNonOverlapArray_left_A);
 
 
-        // left: gap on top
-        if(gotL0_minus1 != winBitsOnLeftOfEdge[even].end())
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_left_B[k] |= (gotL0_minus1->second)[k];
-
-
-        if(gotL1 != winBitsOnLeftOfEdge[odd].end())
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_left_B[k] &= (gotL1->second)[k];
+        // windows on left: gap on top
+        if(gotL0_minus1 != winBitsOnLeftOfPeg[even].end())
+            bst.copy(tempNonOverlapArray_left_B, (gotL0_minus1->second));
+                
+        if(gotL1 != winBitsOnLeftOfPeg[odd].end())
+            bst.s_intersection(tempNonOverlapArray_left_B, (gotL1->second));
         else
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_left_B[k] = 0;
+            bst.reset(tempNonOverlapArray_left_B);
 
 
-        // right: gap on bottom
-        if(gotR0 != winBitsOnRightOfEdge[even].end())
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_right_A[k] |= (gotR0->second)[k];
+        // windows on right: gap on bottom
+        if(gotR0 != winBitsOnRightOfPeg[even].end())
+            bst.copy(tempNonOverlapArray_right_A, (gotR0->second));
         
-        if(gotR1_plus1 != winBitsOnRightOfEdge[odd].end())
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_right_A[k] &= (gotR1_plus1->second)[k];
+        if(gotR1_plus1 != winBitsOnRightOfPeg[odd].end())
+            bst.s_intersection(tempNonOverlapArray_right_A, (gotR1_plus1->second));
         else
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_right_A[k] = 0;
+            bst.reset(tempNonOverlapArray_right_A);
 
 
-        // right: gap on top
-        if(gotR0_plus1 != winBitsOnRightOfEdge[even].end())
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_right_B[k] |= (gotR0_plus1->second)[k];
+        // windows on right: gap on top
+        if(gotR0_plus1 != winBitsOnRightOfPeg[even].end())
+            bst.copy(tempNonOverlapArray_right_B, (gotR0_plus1->second));
         
-        if(gotR1 != winBitsOnRightOfEdge[odd].end())
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_right_B[k] &= (gotR1->second)[k];
+        if(gotR1 != winBitsOnRightOfPeg[odd].end())
+            bst.s_intersection(tempNonOverlapArray_right_B, (gotR1->second));
         else
-            for(int k=0;k<bitVecLongs;k++) 
-                tempNonOverlapArray_right_B[k] = 0;
+            bst.reset(tempNonOverlapArray_right_B);
 
-
-        for(int k=0;k<bitVecLongs;k++) 
-        {
-            tempNonOverlapArray[k]  = tempNonOverlapArray_right_A[k];
-            tempNonOverlapArray[k] |= tempNonOverlapArray_right_B[k];
-            tempNonOverlapArray[k] |= tempNonOverlapArray_left_A[k];
-            tempNonOverlapArray[k] |= tempNonOverlapArray_left_B[k];
-        }
-
+        // Union of 4 sets...
+        bst.copy   (tempNonOverlapArray, tempNonOverlapArray_right_A);
+        bst.s_union(tempNonOverlapArray, tempNonOverlapArray_right_B);
+        bst.s_union(tempNonOverlapArray, tempNonOverlapArray_left_A );
+        bst.s_union(tempNonOverlapArray, tempNonOverlapArray_left_B );
+        
 
         // Now for all other levels:
         // get non overlapping itervals on both even and odd, and 
@@ -536,16 +421,16 @@ void WindowContainer::makeOverlaps_with_intervals()
 
         int level_id = level_pair_to_id[win.l1][win.l2];
             
-        if(gotL0 != winBitsOnLeftOfEdge[even].end())
+        if(gotL0 != winBitsOnLeftOfPeg[even].end())
             bst.s_union(leftright, gotL0->second);
         
-        if(gotR0 != winBitsOnRightOfEdge[even].end())
+        if(gotR0 != winBitsOnRightOfPeg[even].end())
             bst.s_union(leftright, gotR0->second);
 
-        if(gotL1 != winBitsOnLeftOfEdge[odd].end())
+        if(gotL1 != winBitsOnLeftOfPeg[odd].end())
             bst.s_union(leftright, gotL1->second);
         
-        if(gotR1 != winBitsOnRightOfEdge[odd].end())
+        if(gotR1 != winBitsOnRightOfPeg[odd].end())
             bst.s_union(leftright, gotR1->second);
 
         bst.minus(leftright, levelMapper[level_id]);
@@ -574,30 +459,22 @@ void WindowContainer::makeOverlaps_with_intervals()
         string winStr = win.toString();
         nonOverlapsHM_Long[winStr] = tempNonOverlapArray;
         overlapsHM_Long[winStr] = tempOverlapArray;
+
+        counter++;
     }
 
+    // Clean up
     bst.deleteBitSet(tempNonOverlapArray_left_A);
     bst.deleteBitSet(tempNonOverlapArray_right_A);
     bst.deleteBitSet(tempNonOverlapArray_left_B);
     bst.deleteBitSet(tempNonOverlapArray_right_B);
 
-/*
-
-    // cleanup
-    for(const auto& kv : windowsByLeftEdge) 
-        delete kv.second;    
-
-    for(const auto& kv : windowsByRightEdge) 
-        delete kv.second;    
-   
-*/
     for(int num=0; num<numEven+numOdd; num++)
     {
-        for(const auto& kv : winBitsOnLeftOfEdge[num]) 
-            // delete [] kv.second;
+        for(const auto& kv : winBitsOnLeftOfPeg[num]) 
             bst.deleteBitSet(kv.second);
-        for(const auto& kv : winBitsOnRightOfEdge[num]) 
-            // delete [] kv.second;
+
+        for(const auto& kv : winBitsOnRightOfPeg[num]) 
             bst.deleteBitSet(kv.second);
     }
 
@@ -651,6 +528,7 @@ int WindowContainer::sampleAddOrReplace(const vector<Window> & vec, int level1, 
 
     // Add window: get all wins that don't overlap vec
     int c = 0, choice = 99, windowNum = 0;
+    
     for(int i=0;i<bitVecLongs;i++) 
     {
         mrnai_tools::BitSetTools::BIT_STORE x = -1;
@@ -813,8 +691,6 @@ int WindowContainer::getNbrSizeOnly(const vector<Window> & vec, int level1, int 
     
     return sum;
 }
-
-
 
 
 
@@ -1049,7 +925,7 @@ double WindowContainer::regionPairScore(const Region & x, const Region & y)
 
     const double MAX_VAL = 9999999.0;
     // Compute up of union (assume x < y):
-    int gap = y.i - y.w - x.i;
+    // int gap = y.i - y.w - x.i;
     int unionWidth = y.i-(x.i-x.w);
 
     // if(gap > 6 || unionWidth > 25)
@@ -1354,11 +1230,6 @@ unordered_map<string, vector<Region>> WindowContainer::createGraphFromConfig(Con
         Region interval1(even, win.i, win.w1);
         Region interval2(odd,  win.j, win.w2);
 
-        // cout << "for win = " << win << endl;
-        // cout << "interval1 = " << interval1 << endl;
-        // cout << "interval2 = " << interval2 << endl;
-        // cout << endl;
-
         adjList[interval1.toString()].push_back(interval2);
         adjList[interval2.toString()].push_back(interval1);
 
@@ -1366,32 +1237,12 @@ unordered_map<string, vector<Region>> WindowContainer::createGraphFromConfig(Con
         intervalsByLevel[odd].push_back(interval2);
     }
 
-    // for l,ll in intervalsByLevel.iteritems():
-        // ll.sort()
-
-    // cout << "before sorting:";
-    // for(int i=0; i<numRNAs;i++)
-    // {
-    //  cout << "intervalsByLevel[" << i << "] =";
-    //  for(auto w : intervalsByLevel[i])
-    //      cout << w << "  ";
-    //  cout << endl;
-    // }
-
     for(int i=0; i<numOfLevels;i++)
     {
         std::sort(intervalsByLevel[i].begin(), intervalsByLevel[i].end(), regionComparator); 
     }
 
-    // cout << "after sorting:";
-    // for(int i=0; i<numRNAs;i++)
-    // {
-    //  cout << "intervalsByLevel[" << i << "] =";
-    //  for(auto w : intervalsByLevel[i])
-    //      cout << w << "  ";
-    //  cout << endl;
-    // }
-
+    
     for(int i=0; i<numOfLevels;i++)
     {
         if(intervalsByLevel[i].size() >= 2)
@@ -1418,8 +1269,6 @@ unordered_map<string, vector<Region>> WindowContainer::createGraphFromConfig(Con
     // }
 
     return adjList;
-
-
 }
 
 
@@ -1433,7 +1282,6 @@ unordered_set<string> WindowContainer::simpleBFS(string start, unordered_map<str
     while(Q.size() > 0)
     {
         string v = Q.front();
-        // cout << "bfs v = " << v << endl;
         Q.pop();
         visited.insert(v);
 
@@ -1447,37 +1295,25 @@ unordered_set<string> WindowContainer::simpleBFS(string start, unordered_map<str
     }
 
     return visited;
-
 }
 
-unordered_map<pair<string, string>, bool, pairhash> WindowContainer::findAllPaths(Config S, unordered_map<string, vector<Region>>&  adjList)
+unordered_map<pair<string, string>, bool, pairhash> WindowContainer::
+    findAllPaths(Config S, unordered_map<string, vector<Region>>&  adjList)
 {
     unordered_map<pair<string, string>, bool, pairhash> isPath;
 
     for(auto it : adjList)
     {
         string v = it.first;
-        // cout << "finding paths for " << v << endl;
         unordered_set<string> pathsTo = simpleBFS(v, adjList);
         for(auto v2 : pathsTo)
         {
             isPath[make_pair(v, v2)] = true;
-            // cout << "there is a path between " << v << " and " << v2 << endl;
         }
     }
 
     return isPath;
-
-    // unordered_map<pair<int,int>, vector<Window> *, pairhash>
-
 }
-// for v in adjList.keys():
-//         nbrsV = simpleBFS(v, adjList)
-//         for v2 in nbrsV:
-//             isPath[(v, v2)] = True
-
-//     return isPath
-
 
 
 template<typename T>
@@ -1494,15 +1330,11 @@ bool WindowContainer::addWinAndTest(Config S,
             Window win, 
             unordered_map<pair<string, string>, bool, pairhash> & isPath)
 {
-    // int numRNAs = numOfLevels; // + 1;
-    
-    // let new win = XY
-    // then we need to test either ->X , X-Y, Y->
-    // or X->, X-Y, ->Y
-
     int odd  = win.l2;
     int even = win.l1;
 
+    // Each undirected edge representing a window is (X,Y), 
+    // where X is the even interval and Y is the odd interval
     Region X(even, win.i, win.w1);
     Region Y(odd, win.j, win.w2); 
 
@@ -1510,25 +1342,19 @@ bool WindowContainer::addWinAndTest(Config S,
 
     string beforeX, afterX, beforeY, afterY;
 
-
-
     // for X
     {
         Region interval = X;
         int level = interval.l;
-        int i_ = interval.i;
-        // int w_ = interval.w;
+        int i_    = interval.i;
 
         vector<Region> before;
         vector<Region> after;
 
         for(auto it : adjList)
         {
-            string rstr = it.first;
-            Region r(rstr);
+            Region r(it.first);
 
-            // cout << "r = " << r << endl;
-            // cout << "rstr = " << rstr << endl;
             if(level == r.l and r.i < i_)
                 before.push_back(r);
             else if(level == r.l and r.i > i_)
@@ -1536,12 +1362,7 @@ bool WindowContainer::addWinAndTest(Config S,
         }
 
         sort(before.begin(), before.end(), regionComparator);
-        sort(after.begin(), after.end(), regionComparator);
-
-        // cout << "before vec for X:" << endl;
-        // printVec<Region>(before);
-        // cout << "after vec for X:" << endl;
-        // printVec<Region>(after);
+        sort(after.begin(),  after.end(),  regionComparator);
 
         if(before.size() == 0)
             beforeX = "";
@@ -1559,16 +1380,14 @@ bool WindowContainer::addWinAndTest(Config S,
     {
         Region interval = Y;
         int level = interval.l;
-        int i_ = interval.i;
-        // int w_ = interval.w;
+        int i_    = interval.i;
 
         vector<Region> before;
         vector<Region> after;
 
         for(auto it : adjList)
         {
-            string rstr = it.first;
-            Region r(rstr);
+            Region r(it.first);
 
             if(level == r.l and r.i < i_)
                 before.push_back(r);
@@ -1578,11 +1397,6 @@ bool WindowContainer::addWinAndTest(Config S,
 
         sort(before.begin(), before.end(), regionComparator);
         sort(after.begin(),  after.end(),  regionComparator);
-
-        // cout << "before vec for Y:" << endl;
-        // printVec<Region>(before);
-        // cout << "after vec for Y:" << endl;
-        // printVec<Region>(after);
 
         if(before.size() == 0)
             beforeY = "";
@@ -1595,11 +1409,6 @@ bool WindowContainer::addWinAndTest(Config S,
             afterY = after[0].toString();
     }
 
-
-    // cout << "beforeX = " << beforeX << endl;
-    // cout << "afterX = " << afterX << endl;
-    // cout << "beforeY = " << beforeY << endl;
-    // cout << "afterY = " << afterY << endl;
     // case 1: ->X , X-Y, Y->
     string Xnbr = beforeX;
     string Ynbr = afterY;
@@ -1609,7 +1418,6 @@ bool WindowContainer::addWinAndTest(Config S,
     if(Xnbr != "" and Ynbr != "")
         a = isPath[make_pair(Ynbr, Xnbr)];
     
-    // cout << "a = " << a << endl;
     // case 2: X->, X-Y, ->Y
     Xnbr = afterX;
     Ynbr = beforeY;
@@ -1617,19 +1425,14 @@ bool WindowContainer::addWinAndTest(Config S,
     if(Xnbr != "" and Ynbr != "")
         b = isPath[make_pair(Xnbr, Ynbr)];
     
-    // cout << "b = " << b << endl;
     return !(a or b);
-
-
 }
 
 
 void WindowContainer::clearWindowCycleBits()
 {
     for(int k=0; k<bitVecLongs; k++) 
-    {
         winThatCreateCycles[k] = 0;
-    }   
 }
 
 void WindowContainer::setWindowCycleBit(Window win)
