@@ -76,3 +76,4 @@ rm filename.eps
 rm *.out
 rm *.dump
 
+cat logs/"$UNIQ_ID"/representatives.out

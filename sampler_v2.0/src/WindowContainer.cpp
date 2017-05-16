@@ -155,7 +155,7 @@ void WindowContainer::addWindow(Window win)
 void WindowContainer::map_corners_to_windows(vector<Window> * vec)
 {
     int counter = 0;
-    for(Window win : *vec)
+    for(const Window& win : *vec)
     {
         int even = win.l1;
         int odd  = win.l2;
@@ -187,7 +187,7 @@ void WindowContainer::map_corners_to_windows(vector<Window> * vec)
 void WindowContainer::sweepRightToLeft(int level, pair_bitmap & winBitsOnRightOfEdge)
 {
     // use iterators everywhere to avoid looking up the same (key,value) pair more than once
-    for(int i=maxRNALen-1;i>0;i--) // n -> 0 direction crucial for correctness
+    for(int i=maxRNALen-1; i>0; i--) // n -> 0 direction crucial for correctness
     {
         // Idea: winBitsOnRightOfEdge[(level,i)] = winBitsOnRightOfEdge[(level, i+1)]  -> A
         //                                   union wins_starting_from[(level,i+1)]  -> B
@@ -220,7 +220,7 @@ void WindowContainer::sweepRightToLeft(int level, pair_bitmap & winBitsOnRightOf
 
 void WindowContainer::sweepLeftToRight(int level, pair_bitmap & winBitsOnLeftOfEdge)
 {
-    for(int i=1;i<=maxRNALen;i++)
+    for(int i=1; i<=maxRNALen; i++)
     {
         // Idea: winBitsOnLeftOfEdge[(level,i)] = winBitsOnLeftOfEdge[(level, i-1)]  -> A
         //                                       union intervals_endint_at[(level,i-1)]  -> B
@@ -266,7 +266,6 @@ void WindowContainer::makeOverlaps_with_intervals()
     cout << "Max RNA Len = " << maxRNALen << endl;
     auto begin = chrono::high_resolution_clock::now();    
 
-    //+1 because need to ceil (should just actually use ceil ^_^)
     numOfWins   = allWins.size();
 
     // create tools for this universe size
@@ -1341,10 +1340,11 @@ bool WindowContainer::addWinAndTest(Config S,
     vector<Region> vec {X, Y};
 
     string beforeX, afterX, beforeY, afterY;
+    string beforeXY[2], afterXY[2];
 
-    // for X
+    for(int xy=0; xy<2; xy++)
     {
-        Region interval = X;
+        Region interval = vec[xy];
         int level = interval.l;
         int i_    = interval.i;
 
@@ -1365,48 +1365,14 @@ bool WindowContainer::addWinAndTest(Config S,
         sort(after.begin(),  after.end(),  regionComparator);
 
         if(before.size() == 0)
-            beforeX = "";
+            beforeXY[xy] = "";
         else
-            beforeX = before.back().toString();
+            beforeXY[xy] = before.back().toString();
 
         if(after.size() == 0)
-            afterX = "";
+            afterXY[xy] = "";
         else 
-            afterX = after[0].toString();
-    }
-
-
-    // for Y
-    {
-        Region interval = Y;
-        int level = interval.l;
-        int i_    = interval.i;
-
-        vector<Region> before;
-        vector<Region> after;
-
-        for(auto it : adjList)
-        {
-            Region r(it.first);
-
-            if(level == r.l and r.i < i_)
-                before.push_back(r);
-            else if(level == r.l and r.i > i_)
-                after.push_back(r);
-        }
-
-        sort(before.begin(), before.end(), regionComparator);
-        sort(after.begin(),  after.end(),  regionComparator);
-
-        if(before.size() == 0)
-            beforeY = "";
-        else
-            beforeY = before.back().toString();
-
-        if(after.size() == 0)
-            afterY = "";
-        else
-            afterY = after[0].toString();
+            afterXY[xy] = after[0].toString();
     }
 
     // case 1: ->X , X-Y, Y->
