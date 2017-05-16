@@ -13,6 +13,8 @@
 #include "Window.h"
 #include "WindowContainer.h"
 #include "Sampler.h"
+#include "scoring/AdjacentScorer.h"
+#include "scoring/NestedScorer.h"
 
 #define DEBUG_MODE  0
 #define VERBOSE 0
@@ -25,34 +27,6 @@
 extern bool cmdOptionExists(char** begin, char** end, const std::string& option);
 
 
-void Sampler::read_joint_prob_file(int rna_num)
-{   
-    stringstream fname_stream;
-    fname_stream << "joint_prob_rna_" << rna_num;
-    string fname = fname_stream.str();
-    ifstream joint_prob_file(fname);
-
-    if (joint_prob_file.fail())
-    {
-        throw std::runtime_error("couldn't open file " + fname + "\n"); 
-    }
-
-    int i1, j1, i2, j2;
-    double energy;
-    while(joint_prob_file >> i1 >> j1 >> i2 >> j2 >> energy)
-    {
-        //unordered_map<std::pair<string, string>, double> pair_up_energy;
-        int w1 = j1 - i1;
-        int w2 = j2 - i2;
-        Region r1(rna_num, j1+1, w1);
-        Region r2(rna_num, j2+1, w2);
-
-        string key1 = r1.toString() + r2.toString();
-        string key2 = r2.toString() + r1.toString();
-        winContainer->pair_up_energy[key1] = energy;
-        winContainer->pair_up_energy[key2] = energy;
-    }
-}
 
 
 Sampler::Sampler(const Sampler::Params & params)
@@ -73,6 +47,7 @@ Sampler::Sampler(const Sampler::Params & params)
     curr_level_odd  = params.odd_levels.at(0);
 
     numOfRNAs = numEven + numOdd;
+
 
     cout << "numOfRNAs = " << numOfRNAs << endl;
     level_pair_to_id.resize(numOfRNAs+1);
@@ -230,11 +205,7 @@ Sampler::Sampler(const Sampler::Params & params)
     }
 
 
-    // Read joint probability/energy files:
-    // for now, fix file names at joint_prob_rna_i...
-    // for now, only for 2 rnas
-    // read_joint_prob_file(0);
-    // read_joint_prob_file(1);
+    
 
 
     
@@ -253,6 +224,10 @@ Sampler::Sampler(const Sampler::Params & params)
     // }
 
     winContainer->makeOverlaps_with_intervals();    
+
+    scorer = new AdjacentScorer(winContainer);
+    // scorer = new NestedScorer(winContainer);
+
     
 
     cerr << "**All wins size : "      << winContainer->allWins.size() << endl;
@@ -269,13 +244,23 @@ Sampler::Sampler(const Sampler::Params & params)
 
 
 
-    // Config S1 = Config::fromString("[(1, 0, 20, 24, 9, 9), (1, 2, 10, 10, 9, 9), (3, 0, 9, 8, 8, 7), (3, 0, 14, 14, 3, 3), (3, 2, 19, 15, 4, 4), (3, 2, 32, 30, 5, 5)]");
-    // cout << "ans: " << winContainer->configAdjustedWeight(S1) << endl << endl;
+    // Config S1 = Config::fromString("[(0, 1, 4, 4, 3, 3), (0, 1, 23, 29, 15, 17), (0, 1, 58, 38, 8, 8)]");
+    // cout << "ans: " << scorer->configAdjustedWeight(S1) << endl << endl;
+
+    // Config S2 = Config::fromString("[(0, 1, 4, 4, 3, 3), (0, 1, 14, 15, 3, 3), (0, 1, 58, 38, 8, 8)]");
+    // cout << "ans: " << scorer->configAdjustedWeight(S2) << endl << endl;
+
+    // Config S3 = Config::fromString("[(0, 1, 4, 4, 3, 3), (0, 1, 14, 15, 3, 3), (0, 1, 17, 20, 2, 2), (0, 1, 58, 38, 8, 8)]");
+    // cout << "ans: " << scorer->configAdjustedWeight(S3) << endl << endl;
+
+    // Config S4 = Config::fromString("[(0, 1, 4, 4, 3, 3), (0, 1, 17, 20, 6, 8), (0, 1, 58, 38, 8, 8)]");
+    // cout << "ans: " << scorer->configAdjustedWeight(S4) << endl << endl;
+
+
+    // exit(0);
 
     // Config S2 = Config::fromString("[(1, 0, 20, 24, 9, 9), (1, 2, 10, 10, 9, 9), (3, 0, 9, 8, 7, 6), (3, 0, 14, 14, 3, 3), (3, 2, 19, 15, 4, 4), (3, 2, 32, 30, 5, 5)]");
     // cout << "ans: " << winContainer->configAdjustedWeight(S2) << endl << endl;
-
-    // exit(0);
 
     // Config S3 = Config::fromString("[(0, 4, 4, 3, 3), (0, 17, 20, 6, 8), (0, 58, 38, 8, 8)]");
     // cout << "ans: " << winContainer->configAdjustedWeight(S3) << endl << endl;
@@ -556,8 +541,11 @@ if(VERBOSE)
 if(VERBOSE)
     cout << "T = " << (T) << endl;
     
-    double S_weight = winContainer->configAdjustedWeight(S);    //S.totalWeight();
-    double T_weight = winContainer->configAdjustedWeight(T);    //T.totalWeight();
+    // double S_weight = winContainer->configAdjustedWeight(S);    //S.totalWeight();
+    // double T_weight = winContainer->configAdjustedWeight(T);    //T.totalWeight();
+    double S_weight = scorer->configAdjustedWeight(S);    //S.totalWeight();
+    double T_weight = scorer->configAdjustedWeight(T);    //T.totalWeight();
+
 if(VERBOSE)
     cout << "Weight(S) = " << S_weight << endl;
 if(VERBOSE)
@@ -802,7 +790,8 @@ void Sampler::setLevel(int l)
 
 double Sampler::getWeight(Config c)
 {
-    return winContainer->configAdjustedWeight(c);
+    // return winContainer->configAdjustedWeight(c);
+    return scorer->configAdjustedWeight(c);
 }
 
 int Sampler::getNumOfRNAs()

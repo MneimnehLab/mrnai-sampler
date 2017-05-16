@@ -12,8 +12,14 @@ ifeq ($(UNAME_S),Darwin)
 	C++FLAGS= -std=c++11 -stdlib=libc++ -pedantic -O3 -Wall #: temporarily remove this to silence unused-var warnings
 endif
 
-COMMON_OBJ  = $(BUILD_DIR)/Region.o $(BUILD_DIR)/Window.o $(BUILD_DIR)/WindowContainer.o 
-COMMON_OBJ += $(BUILD_DIR)/Sampler.o $(BUILD_DIR)/Config.o
+COMMON_OBJ  = $(BUILD_DIR)/Region.o  
+COMMON_OBJ += $(BUILD_DIR)/Window.o
+COMMON_OBJ += $(BUILD_DIR)/WindowContainer.o 
+COMMON_OBJ += $(BUILD_DIR)/Sampler.o 
+COMMON_OBJ += $(BUILD_DIR)/Config.o
+COMMON_OBJ += $(BUILD_DIR)/scoring/AdjacentScorer.o
+COMMON_OBJ += $(BUILD_DIR)/scoring/NestedScorer.o
+
 
 PROG_NAME=mrnai-sampler
 # CONFIG_TEST_PROG=seeConfig
@@ -41,3 +47,4 @@ all:
 
 clean:
 	(rm -f $(BUILD_DIR)/*.o;)
+	(rm -f $(BUILD_DIR)/scoring/*.o;)

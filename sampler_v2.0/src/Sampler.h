@@ -9,6 +9,8 @@
 #include "Window.h"
 #include "WindowContainer.h"
 #include "Config.h"
+#include "scoring/ScoringScheme.h"
+
 
 
 using std::vector;
@@ -53,6 +55,7 @@ private:
 	Config lastState;
 	double lastStateProb;
 
+	ScoringScheme * scorer;
 
 
 public:

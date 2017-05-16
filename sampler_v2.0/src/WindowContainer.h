@@ -10,6 +10,7 @@
 #include "Region.h"
 #include "Config.h"
 #include "BitSetTools.h"
+// #include "scoring/AdjacentScoring.h"
 
 
 
@@ -46,8 +47,10 @@ typedef unordered_map<string, vector<Window> *> WinMap;
 typedef unordered_map<string, mrnai_tools::BitSetTools::BIT_STORE*> WinMapLong;
 typedef unordered_map<pair<int,int>, mrnai_tools::BitSetTools::BIT_STORE *, pairhash> pair_bitmap;
 
+
 class WindowContainer
 {
+	friend class AdjacentScoring;
 private:
 	vector<vector<Window> *> windowsByLevel;
 	
@@ -124,8 +127,7 @@ int maxRNALen;
 	// Need to explictly look up upE of a region, so this should be in a hashtable... don't care about per level, I guess
 	unordered_map<string, double> regionUpEs;
 
-	// unordered_map<std::pair<string, string>, double> pair_up_energy;
-	unordered_map<string, double> pair_up_energy;
+	
 	
 	WindowContainer(vector<int>, vector<int>) ;
 	~WindowContainer();
@@ -167,6 +169,8 @@ int maxRNALen;
 	double new_unionScore(const vector<Region> & allRegions);
 
 	double best_pairing(const vector<Region> & S, int i, int j);
+
+	static bool regionComparator (Region i, Region j);
 
 };
 
