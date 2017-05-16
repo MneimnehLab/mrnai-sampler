@@ -1339,7 +1339,6 @@ bool WindowContainer::addWinAndTest(Config S,
 
     vector<Region> vec {X, Y};
 
-    string beforeX, afterX, beforeY, afterY;
     string beforeXY[2], afterXY[2];
 
     for(int xy=0; xy<2; xy++)
@@ -1374,6 +1373,11 @@ bool WindowContainer::addWinAndTest(Config S,
         else 
             afterXY[xy] = after[0].toString();
     }
+
+    string beforeX = beforeXY[0], 
+           afterX  = afterXY[0], 
+           beforeY = beforeXY[1], 
+           afterY  = afterXY[1];    
 
     // case 1: ->X , X-Y, Y->
     string Xnbr = beforeX;
