@@ -59,7 +59,6 @@ private:
 
 
 public:
-	vector<vector<int>> level_pair_to_id;
 	vector<std::pair<int, int>> level_id_to_pair;
 	
 	Sampler(int is, int bs, string dataFilename);

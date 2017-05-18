@@ -49,16 +49,15 @@ WindowContainer::WindowContainer(vector<int> even_levels, vector<int> odd_levels
   
     Window::setNumEvenOdd(numEven, numOdd);
 
-    level_pair_to_id.resize(numOfRNAs+1);
-    for(auto& e : level_pair_to_id)
-        e.resize(numOfRNAs+1);
-
+    level_pair_to_id.resize(numOfRNAs*numOfRNAs);
+    
     // for(int i=0; i<numOfLevels; i++)
     int id = 0;
     for(int even : even_levels)
         for(int odd : odd_levels)
         {
-            level_pair_to_id[even][odd] = id;
+            // level_pair_to_id[even][odd] = id;
+            level_pair_to_id[INDEX(even, odd, numOfRNAs)] = id;
             level_id_to_pair.push_back(std::make_pair(even, odd));
 
             windowsByLevel.push_back(new vector<Window>());
@@ -141,7 +140,7 @@ void WindowContainer::addOddRegion(Window win, double botUpE)
 void WindowContainer::addWindow(Window win)
 {
     // cout << "Adding win: " << win << endl;
-    int level_id = level_pair_to_id[win.l1][win.l2];
+    int level_id = level_pair_to_id[INDEX(win.l1, win.l2, numOfRNAs)];  //[win.l1][win.l2];
     windowsByLevel[level_id]->push_back(win);
     interEs[win.toString()] = win.intrEnergy;
     allWins.push_back(win);
@@ -157,28 +156,25 @@ void WindowContainer::map_corners_to_windows(vector<Window> * vec)
     int counter = 0;
     for(const Window& win : *vec)
     {
+        // for each window "win", add it to the four hashtables that correspond
+        // to its four corners
         int even = win.l1;
         int odd  = win.l2;
 
-        // even right corner
         int even_right_corner = win.i;
+        int even_left_corner  = win.i - win.w1;
+        int odd_right_corner  = win.j;
+        int odd_left_corner   = win.j - win.w2;
+
         pair<int, int> even_right = std::make_pair(even, even_right_corner);
+        pair<int, int> even_left  = std::make_pair(even, even_left_corner);
+        pair<int, int> odd_right  = std::make_pair(odd,  odd_right_corner);
+        pair<int, int> odd_left   = std::make_pair(odd,  odd_left_corner);
+
         map_windows_by_right_corner[even_right].push_back(counter);
-
-        // even left corner
-        int even_left_corner = win.i - win.w1;
-        pair<int, int> even_left = std::make_pair(even, even_left_corner);
-        map_windows_by_left_corner [even_left].push_back(counter);
-
-        // odd right corner
-        int odd_right_corner = win.j;
-        pair<int, int> odd_right = std::make_pair(odd, odd_right_corner);
-        map_windows_by_right_corner[odd_right].push_back(counter);
-
-        // odd left corner
-        int odd_left_corner = win.j - win.w2;
-        pair<int, int> odd_left = std::make_pair(odd, odd_left_corner);
-        map_windows_by_left_corner[odd_left].push_back(counter);
+        map_windows_by_left_corner [even_left ].push_back(counter);
+        map_windows_by_right_corner[odd_right ].push_back(counter);
+        map_windows_by_left_corner [odd_left  ].push_back(counter);
 
         counter++;
     }
@@ -300,7 +296,7 @@ void WindowContainer::makeOverlaps_with_intervals()
         int even = win.l1;
         int odd  = win.l2;
     
-        int level_id = level_pair_to_id[even][odd];
+        int level_id = level_pair_to_id[INDEX(even, odd, numOfRNAs)];    // [even][odd];
         setBitTo1(counter++, levelMapper[level_id]);
     }
 
@@ -313,6 +309,10 @@ void WindowContainer::makeOverlaps_with_intervals()
     mrnai_tools::BitSetTools::Container tempNonOverlapArray_right_A = bst.makeBitSet();
     mrnai_tools::BitSetTools::Container tempNonOverlapArray_left_B  = bst.makeBitSet();
     mrnai_tools::BitSetTools::Container tempNonOverlapArray_right_B = bst.makeBitSet();
+
+    // for windows with one interval on level != l1,l2
+    // reuse array.
+    mrnai_tools::BitSetTools::Container leftright = bst.makeBitSet();   
 
 
     for(const Window& win : allWins)
@@ -416,10 +416,10 @@ void WindowContainer::makeOverlaps_with_intervals()
         // Now for all other levels:
         // get non overlapping itervals on both even and odd, and 
         // remove windows that are in current level
+        bs.reset(leftright);
         
-        mrnai_tools::BitSetTools::Container leftright = bst.makeBitSet();   
 
-        int level_id = level_pair_to_id[win.l1][win.l2];
+        int level_id = level_pair_to_id[INDEX(win.l1, win.l2, numOfRNAs)];    // [win.l1][win.l2];
             
         if(gotL0 != winBitsOnLeftOfPeg[even].end())
             bst.s_union(leftright, gotL0->second);
@@ -445,7 +445,7 @@ void WindowContainer::makeOverlaps_with_intervals()
             {
                 if(o_odd == odd) continue;
                 
-                int level_id = level_pair_to_id[e_even][o_odd];
+                int level_id = level_pair_to_id[INDEX(e_even, o_odd, numOfRNAs)]; // [e_even][o_odd];
                 
                 bst.s_union(tempNonOverlapArray, levelMapper[level_id]);
             }
@@ -468,6 +468,7 @@ void WindowContainer::makeOverlaps_with_intervals()
     bst.deleteBitSet(tempNonOverlapArray_right_A);
     bst.deleteBitSet(tempNonOverlapArray_left_B);
     bst.deleteBitSet(tempNonOverlapArray_right_B);
+    bst.deleteBitSet(leftright);
 
     for(int num=0; num<numEven+numOdd; num++)
     {
@@ -699,9 +700,6 @@ const vector<Window> * WindowContainer::getLevel(int i)
 {
     return windowsByLevel[i];
 }
-
-
-
 
 
 

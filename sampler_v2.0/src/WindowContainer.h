@@ -92,7 +92,7 @@ int maxRNALen;
 	vector<int> even_levels;
 	vector<int> odd_levels;
 
-	vector<vector<int>> level_pair_to_id;
+	vector<int> level_pair_to_id; // use as a 2D array
 	vector<std::pair<int, int>> level_id_to_pair;
 
 	// We now have to distinguish between number of RNAs and number of levels
