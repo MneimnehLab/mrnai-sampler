@@ -416,7 +416,7 @@ void WindowContainer::makeOverlaps_with_intervals()
         // Now for all other levels:
         // get non overlapping itervals on both even and odd, and 
         // remove windows that are in current level
-        bs.reset(leftright);
+        bst.reset(leftright);
         
 
         int level_id = level_pair_to_id[INDEX(win.l1, win.l2, numOfRNAs)];    // [win.l1][win.l2];
