@@ -27,6 +27,7 @@ PROG_NAME=mrnai-sampler
 
 $(BUILD_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)/scoring
 	$(CC) $(C++FLAGS) -c  $< -o $@ 
 
 
